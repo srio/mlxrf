@@ -66,12 +66,12 @@ def get_model(
     print(model.summary())
     return model
 
-def load_training_set(nsamples=30, verbose=1, nbin=1, training_ratio=2/3):
-    a = numpy.loadtxt("./data1/sampled_00000_spe.dat")
+def load_training_set(nsamples=30, verbose=1, nbin=1, training_ratio=2/3, directory="./data1/"):
+    a = numpy.loadtxt(directory + "sampled_00000_spe.dat")
     ashape = a.shape
     targets = numpy.zeros((nsamples, a.shape[0]))
 
-    b = numpy.loadtxt("./data1/sampled_00000_xrf.dat")
+    b = numpy.loadtxt(directory + "sampled_00000_xrf.dat")
     bshape = b.shape
     data = numpy.zeros((nsamples, b.shape[0], 1, 1))
     #                                         ^ fake, to use Conv2D
@@ -80,10 +80,10 @@ def load_training_set(nsamples=30, verbose=1, nbin=1, training_ratio=2/3):
     print(ashape, bshape)
 
     for i in range(nsamples):
-        a = numpy.loadtxt("./data1/sampled_%05d_spe.dat" % i)
-        b = numpy.loadtxt("./data1/sampled_%05d_xrf.dat" % i)
-        if a.shape != ashape: raise Exception("Bad dimensions in ./data1/sampled_%05d_spe.dat" % i)
-        if b.shape != bshape: raise Exception("Bad dimensions in ./data1/sampled_%05d_xrf.dat" % i)
+        a = numpy.loadtxt(directory + "sampled_%05d_spe.dat" % i)
+        b = numpy.loadtxt(directory + "sampled_%05d_xrf.dat" % i)
+        if a.shape != ashape: raise Exception("Bad dimensions in .../sampled_%05d_spe.dat" % i)
+        if b.shape != bshape: raise Exception("Bad dimensions in .../sampled_%05d_xrf.dat" % i)
 
         targets[i, :] = a[:, 1]
         data[i, :, 0, 0] = b[:, 1]
@@ -127,9 +127,15 @@ def load_training_set(nsamples=30, verbose=1, nbin=1, training_ratio=2/3):
 
 if __name__ == "__main__":
 
-    (training_data, training_target), (test_data, test_target) = load_training_set(nsamples=30,
+    do_train = 1
+    model_root = "training_v02"
+    directory = "./data2/"
+
+
+    (training_data, training_target), (test_data, test_target) = load_training_set(nsamples=10,
                                                                                    verbose=1,
-                                                                                   nbin=1) # !!!!!!!!!!!!!! binning  !!!!!!!!!!!
+                                                                                   nbin=1,
+                                                                                   directory=directory) # !!!!!!!!!!!!!! binning  !!!!!!!!!!!
 
     print("shape of Training: ", training_data.shape, training_target.shape)
     print("shape of Test: ", test_data.shape, test_target.shape)
@@ -167,8 +173,6 @@ if __name__ == "__main__":
     #
     #
     #
-    do_train = 0
-    model_root = "training_v01"
 
     if do_train:
         input_shape = tuple((training_data.shape[1], training_data.shape[2], training_data.shape[3]))

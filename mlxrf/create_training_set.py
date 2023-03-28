@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 def run_tubes(ITUBE=2, # 0=Mo, 1=Rh, 2= W
               VOLTAGE=30, # kV
-              do_plot=0,
+              interpolate=0,
+              do_plot=1,
               ):
 
     anode = ['Mo','Rh','W'][ITUBE]
@@ -34,15 +35,22 @@ def run_tubes(ITUBE=2, # 0=Mo, 1=Rh, 2= W
     energy = data[:,0]
     flux = data[:,1] # for units, see discussion in 'help'
 
-    energy_flag = numpy.ones_like(energy)
-    energy_flag[energy < 1000] = 0
-    energy_flag[energy > 40000] = 0
-    # print(energy_flag)
 
-    energy = energy[numpy.where(energy_flag>0)]
-    flux = flux[numpy.where(energy_flag>0)]
+    if interpolate == 0: # crop
+        energy_flag = numpy.ones_like(energy)
+        energy_flag[energy < 1000] = 0
+        energy_flag[energy > 40000] = 0
+        # print(energy_flag)
 
-    # print(energy)
+        energy_i = energy[numpy.where(energy_flag>0)]
+        flux_i = flux[numpy.where(energy_flag>0)]
+    elif interpolate == 1: # interpolate
+        energy_i = numpy.arange(1000, 40001, 500)
+        flux_i = numpy.interp(energy_i, energy, flux)
+        # energy = e
+        # flux = f
+
+
     #
     # example plot
     #
@@ -50,9 +58,10 @@ def run_tubes(ITUBE=2, # 0=Mo, 1=Rh, 2= W
         from srxraylib.plot.gol import plot
 
         plot(energy,flux,
+             energy_i, flux_i,
             xtitle="Photon energy [eV]",ytitle="Fluence [photons/s/mm^2/0.5keV(bw)/mA]",
              title="xtubes Fluence; anode=%s,  V=%g kV, NPOINTS=%d" % (anode, VOLTAGE, energy.size),
-            xlog=False,ylog=False,show=True)
+            xlog=False,ylog=False,show=True, legend=["calculated", "cropped/interpolated"])
         # plot(energy,spectral_power,
         #     xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mA/mm^2(@?m) ]",title="xtube_w Spectral Power",
         #     xlog=False,ylog=False,show=False)
@@ -63,14 +72,15 @@ def run_tubes(ITUBE=2, # 0=Mo, 1=Rh, 2= W
     #
     # end script
     #
-    return energy.copy(), flux.copy()
+    return energy_i, flux_i
 
 def get_xrf(ITUBE=2, # 0=Mo, 1=Rh, 2= W
               VOLTAGE=30, # kV
+              interpolate=0,
               do_plot=0,
               ):
 
-    spectrum_e, spectrum_f = run_tubes(ITUBE=ITUBE, VOLTAGE=VOLTAGE, do_plot=do_plot)
+    spectrum_e, spectrum_f = run_tubes(ITUBE=ITUBE, VOLTAGE=VOLTAGE, interpolate=interpolate, do_plot=do_plot)
 
 
     for i, energy in enumerate(spectrum_e):
@@ -108,6 +118,10 @@ if __name__ == "__main__":
         energies = numpy.arange(1.5, 41, 1)
         print(energies)
 
+        e, f = run_tubes(ITUBE=0, VOLTAGE=20, do_plot=1)
+        e, f = run_tubes(ITUBE=1, VOLTAGE=20, do_plot=1)
+        e, f = run_tubes(ITUBE=2, VOLTAGE=20, do_plot=1)
+
         for energy in energies:
             filename = "xrf_axo_%s_keV.csv" % repr(energy)
             print("filename: ", dir_path + filename)
@@ -115,16 +129,13 @@ if __name__ == "__main__":
             print(a.shape)
             plot(a[:,0], a[:,1], title="%s" % energy)
 
-        e, f = run_tubes(ITUBE=0, VOLTAGE=20, do_plot=1)
-
-
     if False:
         dir_path = "/tmp_14_days/reyesher/to_Manolo/XRF_spectra/"
 
         ITUBE = 2
         VOLTAGE = 40
 
-        spectrum_e, spectrum_f, xrf_e, xrf_f, xrf_fcte = get_xrf(ITUBE=ITUBE, VOLTAGE=VOLTAGE, do_plot=0)
+        spectrum_e, spectrum_f, xrf_e, xrf_f, xrf_fcte = get_xrf(ITUBE=ITUBE, VOLTAGE=VOLTAGE, do_plot=1)
 
         plot(spectrum_e, spectrum_f,
              title="ITUBE=%d, VOLTAGE=%f" % (ITUBE, VOLTAGE), legend=["tube spectrum N=%d" % spectrum_e.size])
@@ -134,7 +145,7 @@ if __name__ == "__main__":
              title="ITUBE=%d, VOLTAGE=%f, N=%d" % (ITUBE, VOLTAGE, xrf_e.size), legend=["with spectrum", "with cte spectrum"])
 
 
-    if True:
+    if False: # version 01
 
         dir_path = "/tmp_14_days/reyesher/to_Manolo/XRF_spectra/"
 
@@ -155,6 +166,40 @@ if __name__ == "__main__":
             print(i, fileroot)
 
             spectrum_e, spectrum_f, xrf_e, xrf_f, xrf_fcte = get_xrf(ITUBE=X1[i], VOLTAGE=Y1[i], do_plot=0)
+
+            numpy.savetxt(fileroot + "_spe.dat",
+                          numpy.column_stack((spectrum_e, spectrum_f)) )
+
+            numpy.savetxt(fileroot + "_xrf.dat",
+                          numpy.column_stack((xrf_e, xrf_f, xrf_fcte)) )
+
+            f = open(fileroot + ".txt", 'w')
+            f.write("%d  %g\n" % (X1[i], Y1[i]))
+            f.close()
+
+    if True:  # version 02
+        e = numpy.arange(500,45001,500)
+        print(e, e.size)
+
+        dir_path = "/tmp_14_days/reyesher/to_Manolo/XRF_spectra/"
+
+        nsamples = 1000
+
+        X1 = numpy.random.randint(low=0, high=3, size=(nsamples,))
+        # X1 = numpy.ones(nsamples, dtype=int) * 2
+        # print(X1)
+
+        print(len(X1[numpy.where(X1 == 0)]))
+        print(len(X1[numpy.where(X1 == 1)]))
+        print(len(X1[numpy.where(X1 == 2)]))
+
+        Y1 = numpy.random.rand(nsamples) * (42-18) + 18
+
+        for i in range(nsamples):
+            fileroot = "./data2/sampled_%05d" % (i)
+            print(i, fileroot)
+
+            spectrum_e, spectrum_f, xrf_e, xrf_f, xrf_fcte = get_xrf(ITUBE=X1[i], VOLTAGE=Y1[i], interpolate=1, do_plot=0)
 
             numpy.savetxt(fileroot + "_spe.dat",
                           numpy.column_stack((spectrum_e, spectrum_f)) )
