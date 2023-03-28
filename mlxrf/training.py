@@ -130,9 +130,10 @@ if __name__ == "__main__":
     do_train = 1
     model_root = "training_v02"
     directory = "./data2/"
+    nsamples = 1000
 
 
-    (training_data, training_target), (test_data, test_target) = load_training_set(nsamples=10,
+    (training_data, training_target), (test_data, test_target) = load_training_set(nsamples=nsamples,
                                                                                    verbose=1,
                                                                                    nbin=1,
                                                                                    directory=directory) # !!!!!!!!!!!!!! binning  !!!!!!!!!!!
