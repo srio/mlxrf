@@ -127,7 +127,12 @@ def load_training_set(nsamples=30, verbose=1, nbin=1, training_ratio=2/3, direct
 
 if __name__ == "__main__":
 
-    do_train = 1
+    do_train = 0
+
+    # model_root = "training_v01"
+    # directory = "./data1/"
+    # nsamples = 1000
+
     model_root = "training_v02"
     directory = "./data2/"
     nsamples = 1000

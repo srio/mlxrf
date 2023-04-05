@@ -111,23 +111,27 @@ if __name__ == "__main__":
     # Para cada energía utilicé 1e10 ph/s y un tiempo de colección del espectro de 100 ms.
 
 
-    if False:
-        dir_path = "/tmp_14_days/reyesher/to_Manolo/XRF_spectra/"
+    if True:
+        dir_path = "/scisoft/data/srio/xrf_ml/"
 
         energies = numpy.arange(1.5, 41, 0.01)
         energies = numpy.arange(1.5, 41, 1)
+        energies = numpy.arange(30.5, 41, 1)
         print(energies)
 
-        e, f = run_tubes(ITUBE=0, VOLTAGE=20, do_plot=1)
-        e, f = run_tubes(ITUBE=1, VOLTAGE=20, do_plot=1)
-        e, f = run_tubes(ITUBE=2, VOLTAGE=20, do_plot=1)
+
 
         for energy in energies:
             filename = "xrf_axo_%s_keV.csv" % repr(energy)
             print("filename: ", dir_path + filename)
             a = numpy.loadtxt(dir_path + filename, delimiter=',', skiprows=1)
             print(a.shape)
-            plot(a[:,0], a[:,1], title="%s" % energy)
+            plot(a[:,0], a[:,1], title="%s" % energy, ylog=1)
+
+        # e, f = run_tubes(ITUBE=0, VOLTAGE=20, do_plot=1)
+        # e, f = run_tubes(ITUBE=1, VOLTAGE=20, do_plot=1)
+        # e, f = run_tubes(ITUBE=2, VOLTAGE=20, do_plot=1)
+
 
     if False:
         dir_path = "/tmp_14_days/reyesher/to_Manolo/XRF_spectra/"
@@ -166,40 +170,6 @@ if __name__ == "__main__":
             print(i, fileroot)
 
             spectrum_e, spectrum_f, xrf_e, xrf_f, xrf_fcte = get_xrf(ITUBE=X1[i], VOLTAGE=Y1[i], do_plot=0)
-
-            numpy.savetxt(fileroot + "_spe.dat",
-                          numpy.column_stack((spectrum_e, spectrum_f)) )
-
-            numpy.savetxt(fileroot + "_xrf.dat",
-                          numpy.column_stack((xrf_e, xrf_f, xrf_fcte)) )
-
-            f = open(fileroot + ".txt", 'w')
-            f.write("%d  %g\n" % (X1[i], Y1[i]))
-            f.close()
-
-    if True:  # version 02
-        e = numpy.arange(500,45001,500)
-        print(e, e.size)
-
-        dir_path = "/tmp_14_days/reyesher/to_Manolo/XRF_spectra/"
-
-        nsamples = 1000
-
-        X1 = numpy.random.randint(low=0, high=3, size=(nsamples,))
-        # X1 = numpy.ones(nsamples, dtype=int) * 2
-        # print(X1)
-
-        print(len(X1[numpy.where(X1 == 0)]))
-        print(len(X1[numpy.where(X1 == 1)]))
-        print(len(X1[numpy.where(X1 == 2)]))
-
-        Y1 = numpy.random.rand(nsamples) * (42-18) + 18
-
-        for i in range(nsamples):
-            fileroot = "./data2/sampled_%05d" % (i)
-            print(i, fileroot)
-
-            spectrum_e, spectrum_f, xrf_e, xrf_f, xrf_fcte = get_xrf(ITUBE=X1[i], VOLTAGE=Y1[i], interpolate=1, do_plot=0)
 
             numpy.savetxt(fileroot + "_spe.dat",
                           numpy.column_stack((spectrum_e, spectrum_f)) )
